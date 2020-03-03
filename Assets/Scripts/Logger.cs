@@ -21,7 +21,7 @@ public class Logger : MonoBehaviour {
 	public string XmlLogOutput = "temp.xml";
 
 	//Log timer interval
-	public float LogTimeInterval = .8f;
+	public float LogTimeInterval = 1f / 24f;
 
 	//
 	//Private members
@@ -186,10 +186,17 @@ public class Logger : MonoBehaviour {
 	//Unity callbacks
 	//
 
-    public IEnumerator WaitAndWriteFrame(float waitTime){
-        while(true){
-            yield return new WaitForSeconds(waitTime);
+    public IEnumerator WaitAndWriteFrame(float waitTime)
+    {
+        float nextTime = Time.time + waitTime;
+        while(true)
+        {
+            while(Time.time < nextTime)
+                yield return null;
+            while(Time.time >= nextTime)
+                nextTime += waitTime;
             WriteFrame("frame");
+            //Debug.Log(Time.time);
         }
     }
 
