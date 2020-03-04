@@ -196,7 +196,6 @@ public class Logger : MonoBehaviour {
             while(Time.time >= nextTime)
                 nextTime += waitTime;
             WriteFrame("frame");
-            //Debug.Log(Time.time);
         }
     }
 

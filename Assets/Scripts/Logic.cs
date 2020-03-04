@@ -15,6 +15,8 @@ public class Logic : MonoBehaviour {
 
     public Config globalConfig = null; // Global settings, like actionKey
 
+    public string outputName = "temp.xml";
+
     private bool fplayerfoundtarget = false;
 
     private void ResetCallbacks(){
@@ -262,9 +264,8 @@ public class Logic : MonoBehaviour {
         print("IntroGreyScreen(): Disabled grayscreen");
     }
 
-    void Start(){
+    void Awake(){
         // Read Json file to configure stuff
-        //
 
         string jsonpath = @"config.json";
         if(!File.Exists(jsonpath)){
@@ -277,10 +278,22 @@ public class Logic : MonoBehaviour {
         Config config = Config.Create(configjson);
         globalConfig = config;
 
-        // Setup logger
-        Logger logger = GetComponent<Logger>();
-        logger.InitLogger(globalConfig.subjectName);
+        if(globalConfig.replay == false)
+            Debug.Log("Not a replay");
+        if(globalConfig.replay == true)
+            Debug.Log("Replay");
+    }
 
-        StartCoroutine(RunAllScenes(config.scenes, logger));
+    void Start()
+    {
+        if(!globalConfig.replay)
+        {
+            // Setup logger
+            Logger logger = GetComponent<Logger>();
+            logger.InitLogger(globalConfig.subjectName);
+            logger.XmlLogOutput = outputName;
+
+            StartCoroutine(RunAllScenes(globalConfig.scenes, logger));
+        }
     }
 }
