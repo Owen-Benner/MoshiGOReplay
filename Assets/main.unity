@@ -1556,6 +1556,7 @@ GameObject:
   - component: {fileID: 343176249}
   - component: {fileID: 343176248}
   - component: {fileID: 343176250}
+  - component: {fileID: 343176251}
   m_Layer: 0
   m_Name: Logic
   m_TagString: Untagged
@@ -1586,6 +1587,8 @@ MonoBehaviour:
     playerMoveSpeed: 0
     objTriggerRadius: 0
     actionKey: 
+    replay: 0
+  outputName: temp.xml
 --- !u!4 &343176249
 Transform:
   m_ObjectHideFlags: 0
@@ -1615,6 +1618,19 @@ MonoBehaviour:
   VersionString: 1.0
   XmlLogOutput: temp.xml
   LogTimeInterval: 0.041666668
+--- !u!114 &343176251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343176247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5391601b0c56446eb6da7e649b75c33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  logic: {fileID: 343176248}
 --- !u!1001 &343247111
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9939,6 +9955,24 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5e9e851c0e142814dac026a256ba2ac0, type: 3}
+--- !u!1 &2072049168 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100000, guid: 5e9e851c0e142814dac026a256ba2ac0,
+    type: 3}
+  m_PrefabInstance: {fileID: 2072049167}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2072049169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2072049168}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d4b9fe95d6e4758a6939d5d710482e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &2091925109 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4000010833899594, guid: 8dfc33ca07efac8458a845ec397853dd,

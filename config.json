@@ -77,5 +77,6 @@
     "objTriggerRadius": "3.0",
     "actionKey": "space",
     "pauseTime": "0.5",
-    "lookSlerpTime": "1.5"
+    "lookSlerpTime": "1.5",
+    "replay": "true"
 }

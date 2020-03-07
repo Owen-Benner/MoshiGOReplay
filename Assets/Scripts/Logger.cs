@@ -23,6 +23,9 @@ public class Logger : MonoBehaviour {
 	//Log timer interval
 	public float LogTimeInterval = 1f / 24f;
 
+        //Enables all writing. Turn off for replay.
+        public bool write = true;
+
 	//
 	//Private members
 	//
@@ -61,7 +64,8 @@ public class Logger : MonoBehaviour {
 
 	//Called to start the recording of a trial
 	public void StartTrial(Vector3 destination, GameObject trackme, Vector3 relOrigin){
-
+            if(write)
+            {
 		//Setup local state
 		//
 		gameObjectToLog = trackme;
@@ -96,13 +100,16 @@ public class Logger : MonoBehaviour {
 		//Setup timer; other state
 		//
 		inTrial = true;
-        logCoro = WaitAndWriteFrame(LogTimeInterval);
-        StartCoroutine(logCoro);
+                logCoro = WaitAndWriteFrame(LogTimeInterval);
+                StartCoroutine(logCoro);
 		timeStart = Time.time;
+            }
 	}
 
 	//Ends a started trial
 	public void EndTrial(int index = -1){
+            if(write)
+            {
 		//Write the no bs element
 		//
 		m_writer.WriteStartElement("done");
@@ -113,10 +120,11 @@ public class Logger : MonoBehaviour {
 
 		m_writer.WriteEndElement();//End trial element
 
-        // We're out of the trial!
+                // We're out of the trial!
 		inTrial = false;
-        StopCoroutine(logCoro);
-        logCoro = null;
+                StopCoroutine(logCoro);
+                logCoro = null;
+            }
 	}
 
     // Log when player presses action
@@ -128,10 +136,12 @@ public class Logger : MonoBehaviour {
     // Phases wrap all trials
 
 	public void StartPhase(string phase){
-		m_writer.WriteStartElement(phase);
+	    if(write)
+                m_writer.WriteStartElement(phase);
 	}
 	
 	public void EndPhase(){
+            if(write)
 		m_writer.WriteEndElement();
 	}
 
@@ -141,6 +151,8 @@ public class Logger : MonoBehaviour {
 
 	//Log the state of the current frame
 	private void WriteFrame(string name, string extraAttrib=null){
+            if(write)
+            {
 		//Writing this frame...
 		m_writer.WriteStartElement(name);
 
@@ -152,15 +164,19 @@ public class Logger : MonoBehaviour {
 		m_writer.WriteAttributeString("timestamp", Time.time.ToString());
 		m_writer.WriteAttributeString("x", (t.position.x - relativeOrigin.x).ToString());
 		m_writer.WriteAttributeString("y", (t.position.z - relativeOrigin.z).ToString());
-        if(extraAttrib != null){
-            m_writer.WriteAttributeString("result", extraAttrib);
-        }
+
+                if(extraAttrib != null){
+                    m_writer.WriteAttributeString("result", extraAttrib);
+                }
 
 		//Done!
 		m_writer.WriteEndElement();
+            }
 	}
 
 	public void InitLogger(string subjectName){
+            if(write)
+            {
 		//Xml
 		//
 
@@ -175,11 +191,15 @@ public class Logger : MonoBehaviour {
 		m_writer.WriteStartElement("run");
 		m_writer.WriteAttributeString("subject", subjectName);
 		m_writer.WriteAttributeString("version", VersionString);
+            }
 	}
 
 	public void LogDebug(string s){
+            if(write)
+            {
 		m_writer.WriteStartElement("run");
 		m_writer.WriteEndElement();
+            }
 	}
 
 	//
@@ -202,6 +222,8 @@ public class Logger : MonoBehaviour {
 	//TODO exceptions/using statements
 	//Close our file and that kind of thing
 	void OnDestroy(){
+            if(write)
+            {
 		if(inTrial)
 			EndTrial();
 
@@ -213,6 +235,7 @@ public class Logger : MonoBehaviour {
 
 		//Close file
 		m_writer.Close();
+            }
 	}
 }
 

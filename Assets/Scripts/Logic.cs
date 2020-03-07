@@ -286,14 +286,14 @@ public class Logic : MonoBehaviour {
 
     void Start()
     {
-        if(!globalConfig.replay)
-        {
-            // Setup logger
-            Logger logger = GetComponent<Logger>();
-            logger.InitLogger(globalConfig.subjectName);
-            logger.XmlLogOutput = outputName;
+        // Setup logger
+        Logger logger = GetComponent<Logger>();
+        if(globalConfig.replay)
+            logger.write = false;
 
-            StartCoroutine(RunAllScenes(globalConfig.scenes, logger));
-        }
+        logger.InitLogger(globalConfig.subjectName);
+        logger.XmlLogOutput = outputName;
+
+        StartCoroutine(RunAllScenes(globalConfig.scenes, logger));
     }
 }
