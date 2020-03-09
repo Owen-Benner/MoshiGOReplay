@@ -27,9 +27,12 @@ public class Reader : MonoBehaviour
             Debug.Log("Read log.");
             outputName = logic.outputName;
 
-            using(XmlReader xmlr = XmlReader.Create(outputName))
+            using(XmlReader xmlReader = XmlReader.Create(outputName))
             {
-
+                while(xmlReader.Read())
+                {
+                    Debug.Log(xmlReader.NodeType);
+                }
             }
         }
     }

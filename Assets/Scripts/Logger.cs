@@ -49,8 +49,8 @@ public class Logger : MonoBehaviour {
 	//XmlWriter
 	private XmlWriter m_writer;
 
-    // Keep track of logging coroutine
-    private IEnumerator logCoro;
+        // Keep track of logging coroutine
+        private IEnumerator logCoro;
 
 	//Are we currently inside a trial element?
 	private bool inTrial = false;
