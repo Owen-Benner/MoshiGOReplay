@@ -8,6 +8,7 @@ public class Reader : MonoBehaviour
     public Logic logic;
     private string outputName;
 
+    //Create constructor accepting XmlReader
     private struct Frame
     {
         float distance;
@@ -32,6 +33,16 @@ public class Reader : MonoBehaviour
                 while(xmlReader.Read())
                 {
                     Debug.Log(xmlReader.NodeType);
+                    switch(xmlReader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            Debug.Log(xmlReader.Name);
+                            for(int i = 0; i < xmlReader.AttributeCount; ++i)
+                            {
+                                Debug.Log(xmlReader.GetAttribute(i));
+                            }
+                            break;
+                    }
                 }
             }
         }

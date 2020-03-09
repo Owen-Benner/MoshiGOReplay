@@ -1618,6 +1618,7 @@ MonoBehaviour:
   VersionString: 1.0
   XmlLogOutput: temp.xml
   LogTimeInterval: 0.041666668
+  write: 1
 --- !u!114 &343176251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9727,7 +9728,7 @@ GameObject:
   - component: {fileID: 2044103559}
   - component: {fileID: 2044103558}
   m_Layer: 0
-  m_Name: Terrain Play Areaa
+  m_Name: Terrain Play Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
