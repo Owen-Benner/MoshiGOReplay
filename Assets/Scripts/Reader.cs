@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
@@ -9,14 +10,25 @@ public class Reader : MonoBehaviour
     private string outputName;
 
     //Create constructor accepting XmlReader
-    private struct Frame
+    public struct Frame
     {
-        float distance;
-        float pose;
-        float timestamp;
-        float x;
-        float y;
+        public float distance;
+        public float pose;
+        public float timestamp;
+        public float x;
+        public float y;
+
+        public Frame(string d, string p, string t, string _x, string _y)
+        {
+            distance = Single.Parse(d);
+            pose = Single.Parse(p);
+            timestamp = Single.Parse(t);
+            x = Single.Parse(_x);
+            y = Single.Parse(_y);
+        }
     };
+
+    public List<Frame> frames;
 
     // Start is called before the first frame update
     void Start()
@@ -25,26 +37,33 @@ public class Reader : MonoBehaviour
             enabled = false;
         else
         {
-            Debug.Log("Read log.");
+            frames = new List<Frame>();
             outputName = logic.outputName;
 
             using(XmlReader xmlReader = XmlReader.Create(outputName))
             {
                 while(xmlReader.Read())
                 {
-                    Debug.Log(xmlReader.NodeType);
                     switch(xmlReader.NodeType)
                     {
                         case XmlNodeType.Element:
-                            Debug.Log(xmlReader.Name);
-                            for(int i = 0; i < xmlReader.AttributeCount; ++i)
+                            if(xmlReader.Name == "frame")
                             {
-                                Debug.Log(xmlReader.GetAttribute(i));
+                                Frame newFrame = new Frame(
+                                    xmlReader.GetAttribute("distance"),
+                                    xmlReader.GetAttribute("pose"),
+                                    xmlReader.GetAttribute("timestamp"),
+                                    xmlReader.GetAttribute("x"),
+                                    xmlReader.GetAttribute("y"));
+                                frames.Add(newFrame);
                             }
                             break;
                     }
                 }
             }
+
+            //foreach(Frame frame in frames)
+                //Debug.Log(frame.timestamp);
         }
     }
 

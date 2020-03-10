@@ -1576,6 +1576,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e5cc86e0d71c0248a5134dbcdce46d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 2072049168}
   Environments: {fileID: 171262062}
   CanvasCoord: {fileID: 1546039136}
   globalConfig:

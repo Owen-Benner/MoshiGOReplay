@@ -6,8 +6,11 @@ using System.Linq;
 using System;
 using System.IO;
 using System.Text;
+using UnityStandardAssets.Characters.FirstPerson;
 
 public class Logic : MonoBehaviour {
+    public GameObject player;
+
     private float IntroGreyScreenTime = 4.0f;
 
     public GameObject Environments = null;
@@ -289,7 +292,11 @@ public class Logic : MonoBehaviour {
         // Setup logger
         Logger logger = GetComponent<Logger>();
         if(globalConfig.replay)
+        {
             logger.write = false;
+            player.GetComponent<FirstPersonController>().enabled = false;
+            player.GetComponent<ReplayMovement>().enabled = true;
+        }
 
         logger.InitLogger(globalConfig.subjectName);
         logger.XmlLogOutput = outputName;
