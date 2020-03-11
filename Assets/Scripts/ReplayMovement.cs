@@ -5,6 +5,7 @@ using UnityEngine;
 public class ReplayMovement : MonoBehaviour
 {
     private Transform playPos;
+    public Reader reader;
 
     // Start is called before the first frame update
     void Start()
@@ -15,7 +16,7 @@ public class ReplayMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void MoveToFrame(float pose, float xPos, float zPos)

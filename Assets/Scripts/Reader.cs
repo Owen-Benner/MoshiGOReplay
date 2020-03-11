@@ -28,6 +28,27 @@ public class Reader : MonoBehaviour
         }
     };
 
+    public struct Trial
+    {
+        public float goalx;
+        public float goaly;
+        public float pose;
+        public float startx;
+        public float starty;
+        public float starttime;
+
+        public Trial(string gx, string gy, string p, string sx, string sy,
+            string st)
+        {
+            goalx = Single.Parse(gx);
+            goaly = Single.Parse(gy);
+            pose = Single.Parse(p);
+            startx = Single.Parse(sx);
+            starty = Single.Parse(sy);
+            starttime = Single.Parse(st);
+        }
+    };
+
     public List<Frame> frames;
 
     // Start is called before the first frame update
@@ -38,6 +59,8 @@ public class Reader : MonoBehaviour
         else
         {
             frames = new List<Frame>();
+            trials = new List<Trial>();
+
             outputName = logic.outputName;
 
             using(XmlReader xmlReader = XmlReader.Create(outputName))
@@ -56,6 +79,17 @@ public class Reader : MonoBehaviour
                                     xmlReader.GetAttribute("x"),
                                     xmlReader.GetAttribute("y"));
                                 frames.Add(newFrame);
+                            }
+                            else if(xmlReader.Name == "trial")
+                            {
+                                Trial newTrial = new Trial(
+                                    xmlReader.GetAttribute("goalx"),
+                                    xmlReader.GetAttribute("goaly"),
+                                    xmlReader.GetAttribute("pose"),
+                                    xmlReader.GetAttribute("startx"),
+                                    xmlReader.GetAttribute("starty"),
+                                    xmlReader.GetAttribute("starttime"));
+                                trials.Add(newTrial);
                             }
                             break;
                     }
