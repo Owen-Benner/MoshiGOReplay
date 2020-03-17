@@ -9,6 +9,7 @@ using System.Text;
 using UnityStandardAssets.Characters.FirstPerson;
 
 public class Logic : MonoBehaviour {
+
     public GameObject player;
 
     private float IntroGreyScreenTime = 4.0f;
@@ -79,7 +80,7 @@ public class Logic : MonoBehaviour {
     // Scene logics
     //
 
-    public IEnumerator RunNormalScene(Scene s, Logger logger){
+    public IEnumerator RunNormalScene(Scene s, Logger logger, Reader reader){
         print("RunNormalScene(): Starting");
 
         // Show GrayScreen
@@ -111,6 +112,8 @@ public class Logic : MonoBehaviour {
         // Setup logger, using environment info component
         EnvInfo envinfo = (EnvInfo)curenv.GetComponent<EnvInfo>();
         logger.StartTrial(envinfo.GetActiveTriggerObj().transform.position, player, envinfo.GetOrigin());
+
+        reader.StartTrial();
 
         // Wait for player to find target
         float curtime = Time.time;
@@ -213,10 +216,10 @@ public class Logic : MonoBehaviour {
     }
 
     // In environment, obj in the world, go get it, repeat
-    public IEnumerator RunScene(Scene s, Logger logger){
+    public IEnumerator RunScene(Scene s, Logger logger, Reader reader){
         switch(s.mode){
             case "normal":
-                yield return StartCoroutine(RunNormalScene(s, logger));
+                yield return StartCoroutine(RunNormalScene(s, logger, reader));
                 break;
             case "explore":
                 yield return StartCoroutine(RunExploreScene(s, logger));
@@ -227,7 +230,8 @@ public class Logic : MonoBehaviour {
         }
     }
 
-    public IEnumerator RunAllScenes(IEnumerable<Scene> scenes, Logger logger){
+    public IEnumerator RunAllScenes(IEnumerable<Scene> scenes, Logger logger,
+        Reader reader){
         // Show the intro screen first
         yield return StartCoroutine(IntroGreyScreen(IntroGreyScreenTime));
 
@@ -237,7 +241,7 @@ public class Logic : MonoBehaviour {
         foreach(Scene s in scenes){
             print(String.Format("RunAllScenes(): Running scene number: {0}", counter));
 
-            yield return StartCoroutine(RunScene(s, logger));
+            yield return StartCoroutine(RunScene(s, logger, reader));
 
             print(String.Format("RunAllScenes(): Done running scene number: {0}", counter));
             counter += 1;
@@ -291,6 +295,7 @@ public class Logic : MonoBehaviour {
     {
         // Setup logger
         Logger logger = GetComponent<Logger>();
+        Reader reader = GetComponent<Reader>();
         if(globalConfig.replay)
         {
             logger.write = false;
@@ -301,6 +306,6 @@ public class Logic : MonoBehaviour {
         logger.InitLogger(globalConfig.subjectName);
         logger.XmlLogOutput = outputName;
 
-        StartCoroutine(RunAllScenes(globalConfig.scenes, logger));
+        StartCoroutine(RunAllScenes(globalConfig.scenes, logger, reader));
     }
 }

@@ -7,7 +7,11 @@ using UnityEngine;
 public class Reader : MonoBehaviour
 {
     public Logic logic;
+    public ReplayMovement reMove;
     private string outputName;
+
+    private bool replaying = false;
+    private float startTime;
 
     //Create constructor accepting XmlReader
     public struct Frame
@@ -49,7 +53,10 @@ public class Reader : MonoBehaviour
         }
     };
 
+    //Add done.
+
     public List<Frame> frames;
+    public List<Trial> trials;
 
     // Start is called before the first frame update
     void Start()
@@ -104,6 +111,36 @@ public class Reader : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if(replaying)
+        {
+            if(frames.Count == 0)
+            {
+                replaying = false;
+                trials.RemoveAt(0);
+            }
+            else
+            {
+                float adjTime = Time.time - startTime + trials[0].starttime;
+                //Skip to last applicable frame.
+                while(frames[1].timestamp < adjTime)
+                {
+                    frames.RemoveAt(0);
+                }
+                //Check to read next frame.
+                Frame frame = frames[0];
+                if(adjTime > frame.timestamp)
+                {
+                    reMove.MoveToFrame(frame.pose, frame.x, frame.y);
+                    frames.RemoveAt(0);
+                }
+            }
+        }
+    }
+
+    public void StartTrial()
+    {
+        Debug.Log("Starting trial");
+        replaying = true;
+        startTime = Time.time;
     }
 }

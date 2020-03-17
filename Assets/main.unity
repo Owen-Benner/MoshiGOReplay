@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.43674767, g: 0.4843576, b: 0.5646049, a: 1}
+  m_IndirectSpecularColor: {r: 0.43673462, g: 0.48434603, b: 0.5645985, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1633,6 +1633,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logic: {fileID: 343176248}
+  reMove: {fileID: 2072049169}
 --- !u!1001 &343247111
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9975,6 +9976,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87d4b9fe95d6e4758a6939d5d710482e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playPos: {fileID: 2072049176}
+--- !u!4 &2072049176 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 5e9e851c0e142814dac026a256ba2ac0,
+    type: 3}
+  m_PrefabInstance: {fileID: 2072049167}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2091925109 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4000010833899594, guid: 8dfc33ca07efac8458a845ec397853dd,
