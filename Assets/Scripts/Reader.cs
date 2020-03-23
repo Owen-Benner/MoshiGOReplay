@@ -13,6 +13,8 @@ public class Reader : MonoBehaviour
     private bool replaying = false;
     private float startTime;
 
+    private Vector3 relOrigin;
+
     //Create constructor accepting XmlReader
     public struct Frame
     {
@@ -53,10 +55,43 @@ public class Reader : MonoBehaviour
         }
     };
 
+    public struct Done
+    {
+        public float time_elapsed;
+
+        public Done(string t)
+        {
+            time_elapsed = Single.Parse(t);
+        }
+    };
+
+    public struct Action
+    {
+        public float distance;
+        public float pose;
+        public float timestamp;
+        public float x;
+        public float y;
+        public string result;
+
+        public Action(string d, string p, string t, string _x, string _y,
+            string r)
+        {
+            distance = Single.Parse(d);
+            pose = Single.Parse(p);
+            timestamp = Single.Parse(t);
+            x = Single.Parse(_x);
+            y = Single.Parse(_y);
+            result = r;
+        }
+    };
+
     //Add done.
 
     public List<Frame> frames;
     public List<Trial> trials;
+    public List<Done> dones;
+    public List<Action> actions;
 
     // Start is called before the first frame update
     void Start()
@@ -67,6 +102,8 @@ public class Reader : MonoBehaviour
         {
             frames = new List<Frame>();
             trials = new List<Trial>();
+            dones = new List<Done>();
+            actions = new List<Action>();
 
             outputName = logic.outputName;
 
@@ -98,13 +135,31 @@ public class Reader : MonoBehaviour
                                     xmlReader.GetAttribute("starttime"));
                                 trials.Add(newTrial);
                             }
+                            else if(xmlReader.Name == "done")
+                            {
+                                Done newDone = new Done(
+                                    xmlReader.GetAttribute("time_elapsed"));
+                                dones.Add(newDone);
+                            }
+                            else if(xmlReader.Name == "action")
+                            {
+                                Action newAction = new Action(
+                                    xmlReader.GetAttribute("distance"),
+                                    xmlReader.GetAttribute("pose"),
+                                    xmlReader.GetAttribute("timestamp"),
+                                    xmlReader.GetAttribute("x"),
+                                    xmlReader.GetAttribute("y"),
+                                    xmlReader.GetAttribute("result"));
+                                actions.Add(newAction);
+                            }
                             break;
                     }
                 }
             }
-
-            //foreach(Frame frame in frames)
-                //Debug.Log(frame.timestamp);
+            /*
+            foreach(Frame frame in frames)
+                Debug.Log(frame.timestamp);
+            */
         }
     }
 
@@ -116,7 +171,7 @@ public class Reader : MonoBehaviour
             if(frames.Count == 0)
             {
                 replaying = false;
-                trials.RemoveAt(0);
+                Debug.Log("End run");
             }
             else
             {
@@ -130,17 +185,28 @@ public class Reader : MonoBehaviour
                 Frame frame = frames[0];
                 if(adjTime > frame.timestamp)
                 {
-                    reMove.MoveToFrame(frame.pose, frame.x, frame.y);
+                    reMove.MoveToFrame(frame.pose, frame.x, frame.y, relOrigin);
                     frames.RemoveAt(0);
+                }
+
+                if(dones[0].time_elapsed < Time.time - startTime)
+                {
+                    replaying = false;
+                    trials.RemoveAt(0);
+                    dones.RemoveAt(0);
+                    Debug.Log("End trial");
                 }
             }
         }
     }
 
-    public void StartTrial()
+    public void StartTrial(Vector3 _relOrigin)
     {
         Debug.Log("Starting trial");
         replaying = true;
         startTime = Time.time;
+        reMove =
+            GameObject.FindWithTag("Player").GetComponent<ReplayMovement>();
+        relOrigin = _relOrigin;
     }
 }

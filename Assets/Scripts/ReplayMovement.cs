@@ -18,10 +18,12 @@ public class ReplayMovement : MonoBehaviour
 
     }
 
-    public void MoveToFrame(float pose, float xPos, float zPos)
+    public void MoveToFrame(float pose, float xPos, float zPos,
+        Vector3 relOrigin)
     {
         playPos.eulerAngles = new Vector3 (playPos.eulerAngles.x, pose,
             playPos.eulerAngles.z);
-        playPos.position = new Vector3 (xPos, playPos.position.y, zPos);
+        playPos.position = new Vector3 (xPos + relOrigin.x, playPos.position.y,
+            zPos + relOrigin.z);
     }
 }

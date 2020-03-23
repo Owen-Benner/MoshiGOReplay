@@ -113,7 +113,7 @@ public class Logic : MonoBehaviour {
         EnvInfo envinfo = (EnvInfo)curenv.GetComponent<EnvInfo>();
         logger.StartTrial(envinfo.GetActiveTriggerObj().transform.position, player, envinfo.GetOrigin());
 
-        reader.StartTrial();
+        reader.StartTrial(envinfo.GetOrigin());
 
         // Wait for player to find target
         float curtime = Time.time;
