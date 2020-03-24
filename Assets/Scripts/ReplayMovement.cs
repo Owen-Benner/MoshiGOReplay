@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class ReplayMovement : MonoBehaviour
 {
-    public Transform playPos;
+    private Transform playPos;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        playPos = GetComponent<Transform>();
     }
 
     // Update is called once per frame

@@ -10,8 +10,6 @@ using UnityStandardAssets.Characters.FirstPerson;
 
 public class Logic : MonoBehaviour {
 
-    public GameObject player;
-
     private float IntroGreyScreenTime = 4.0f;
 
     public GameObject Environments = null;
@@ -96,7 +94,16 @@ public class Logic : MonoBehaviour {
             curenv.BroadcastMessage("SpawnPlayerAtIndex", s.playerSpawnIndex);
         }
         GameObject player = GameObject.FindWithTag("Player");
-        player.SendMessage("EnableInput");
+        if(globalConfig.replay)
+        {
+            player.SendMessage("DisableInput");
+            player.SendMessage("EnableReplay");
+        }
+        else
+        {
+            player.SendMessage("EnableInput");
+            player.SendMessage("DisableReplay");
+        }
 
         // Setup trigger object
         curenv.BroadcastMessage("ActivateObjTriggerAtIndex",
@@ -117,26 +124,51 @@ public class Logic : MonoBehaviour {
 
         // Wait for player to find target
         float curtime = Time.time;
-        yield return new WaitUntil(() =>
-                (s.showObjAlways ?
-                 fplayerfoundtarget :
-                 (Input.GetKeyDown(globalConfig.actionKey) || Time.time - curtime >= s.envTime)));
+        if(!globalConfig.replay)
+        {
+            yield return new WaitUntil(() =>
+                    (s.showObjAlways ?
+                     fplayerfoundtarget :
+                     (Input.GetKeyDown(globalConfig.actionKey) || Time.time - curtime >= s.envTime)));
+        }
+        else
+        {
+            yield return new WaitUntil(() => reader.actionFlag != 0);
+        }
 
-        bool ftimedout = Time.time - curtime >= s.envTime;
+        bool ftimedout = false;
+        if(!globalConfig.replay)
+        {
+            ftimedout = Time.time - curtime >= s.envTime;
+        }
+        else
+        {
+            ftimedout = (reader.actionFlag == 2);
+            reader.actionFlag = 0;
+        }
 
         // Log player doing action/timing out
         logger.WriteAction(ftimedout ? "timeout" : "action");
+        Debug.Log(ftimedout ? "timeout" : "action");
 
         // Freeze player controls
         player.SendMessage("DisableInput");
 
         // Check if player found target after the press
-        bool ffoundtarget = !(Time.time - curtime >= s.envTime) &&
-            (s.showObjAlways ?
-                fplayerfoundtarget :
-                (globalConfig.objTriggerRadius + player.GetComponent<CharacterController>().radius) >=
-                 Vector2.Distance(Helper.ToVector2(objpos),
-                                  Helper.ToVector2(player.transform.position)));
+        bool ffoundtarget;
+        if(!globalConfig.replay)
+        {
+            ffoundtarget = !(Time.time - curtime >= s.envTime) &&
+                (s.showObjAlways ?
+                    fplayerfoundtarget :
+                    (globalConfig.objTriggerRadius + player.GetComponent<CharacterController>().radius) >=
+                     Vector2.Distance(Helper.ToVector2(objpos),
+                                      Helper.ToVector2(player.transform.position)));
+        }
+        else
+        {
+            ffoundtarget = !ftimedout;
+        }
 
         print(String.Format("RunScene(): ffoundtarget: '{0}'", ffoundtarget));
 
@@ -299,8 +331,6 @@ public class Logic : MonoBehaviour {
         if(globalConfig.replay)
         {
             logger.write = false;
-            player.GetComponent<FirstPersonController>().enabled = false;
-            player.GetComponent<ReplayMovement>().enabled = true;
         }
 
         logger.InitLogger(globalConfig.subjectName);

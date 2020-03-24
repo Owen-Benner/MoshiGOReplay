@@ -14,12 +14,15 @@ public class PlayerAction : MonoBehaviour {
     private FirstPersonController fpscont; // Enable/Disable input
     private CharacterController charcont; // Freeze/Unfreeze player
 
+    private ReplayMovement reMove;
+
     void Awake(){
         globalConfig = GameObject.Find("Logic").GetComponent<Logic>().globalConfig;
         child = transform.GetChild(0);
         GameObject go = transform.gameObject;
         fpscont = (FirstPersonController)go.GetComponent<FirstPersonController>();
         charcont = (CharacterController)go.GetComponent<CharacterController>();
+        reMove = GetComponent<ReplayMovement>();
     }
 
     // Coroutines
@@ -45,7 +48,8 @@ public class PlayerAction : MonoBehaviour {
     }
 
     public void EnableInput(){
-        fpscont.enabled = true;
+        if(!globalConfig.replay)
+            fpscont.enabled = true;
     }
 
     public void FreezePlayer(){
@@ -54,5 +58,15 @@ public class PlayerAction : MonoBehaviour {
 
     public void UnFreezePlayer(){
         charcont.enabled = true;
+    }
+
+    public void DisableReplay()
+    {
+        reMove.enabled = false;
+    }
+
+    public void EnableReplay()
+    {
+        reMove.enabled = true;
     }
 }

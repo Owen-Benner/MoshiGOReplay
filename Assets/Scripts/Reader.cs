@@ -8,6 +8,9 @@ public class Reader : MonoBehaviour
 {
     public Logic logic;
     public ReplayMovement reMove;
+
+    public int actionFlag = 0; //1 if action, 2 if timeout
+
     private string outputName;
 
     private bool replaying = false;
@@ -23,14 +26,17 @@ public class Reader : MonoBehaviour
         public float timestamp;
         public float x;
         public float y;
+        public string result;
 
-        public Frame(string d, string p, string t, string _x, string _y)
+        public Frame(string d, string p, string t, string _x, string _y,
+            string r = null)
         {
             distance = Single.Parse(d);
             pose = Single.Parse(p);
             timestamp = Single.Parse(t);
             x = Single.Parse(_x);
             y = Single.Parse(_y);
+            result = r;
         }
     };
 
@@ -65,33 +71,11 @@ public class Reader : MonoBehaviour
         }
     };
 
-    public struct Action
-    {
-        public float distance;
-        public float pose;
-        public float timestamp;
-        public float x;
-        public float y;
-        public string result;
-
-        public Action(string d, string p, string t, string _x, string _y,
-            string r)
-        {
-            distance = Single.Parse(d);
-            pose = Single.Parse(p);
-            timestamp = Single.Parse(t);
-            x = Single.Parse(_x);
-            y = Single.Parse(_y);
-            result = r;
-        }
-    };
-
     //Add done.
 
     public List<Frame> frames;
     public List<Trial> trials;
     public List<Done> dones;
-    public List<Action> actions;
 
     // Start is called before the first frame update
     void Start()
@@ -103,7 +87,6 @@ public class Reader : MonoBehaviour
             frames = new List<Frame>();
             trials = new List<Trial>();
             dones = new List<Done>();
-            actions = new List<Action>();
 
             outputName = logic.outputName;
 
@@ -143,14 +126,14 @@ public class Reader : MonoBehaviour
                             }
                             else if(xmlReader.Name == "action")
                             {
-                                Action newAction = new Action(
+                                Frame newAction = new Frame(
                                     xmlReader.GetAttribute("distance"),
                                     xmlReader.GetAttribute("pose"),
                                     xmlReader.GetAttribute("timestamp"),
                                     xmlReader.GetAttribute("x"),
                                     xmlReader.GetAttribute("y"),
                                     xmlReader.GetAttribute("result"));
-                                actions.Add(newAction);
+                                frames.Add(newAction);
                             }
                             break;
                     }
@@ -179,13 +162,25 @@ public class Reader : MonoBehaviour
                 //Skip to last applicable frame.
                 while(frames[1].timestamp < adjTime)
                 {
-                    frames.RemoveAt(0);
+                    if(frames[0].result == null)
+                        frames.RemoveAt(0);
                 }
                 //Check to read next frame.
                 Frame frame = frames[0];
                 if(adjTime > frame.timestamp)
                 {
                     reMove.MoveToFrame(frame.pose, frame.x, frame.y, relOrigin);
+                    if(frames[0].result != null)
+                    {
+                        if(frames[0].result == "action")
+                        {
+                            actionFlag = 1;
+                        }
+                        else if(frames[0].result == "timeout")
+                        {
+                            actionFlag = 2;
+                        }
+                    }
                     frames.RemoveAt(0);
                 }
 
