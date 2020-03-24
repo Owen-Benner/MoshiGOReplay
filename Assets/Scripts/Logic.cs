@@ -96,7 +96,7 @@ public class Logic : MonoBehaviour {
         GameObject player = GameObject.FindWithTag("Player");
         if(globalConfig.replay)
         {
-            player.SendMessage("DisableInput");
+            player.SendMessage("EnableInput"); //Leave on to set player height.
             player.SendMessage("EnableReplay");
         }
         else
@@ -122,8 +122,16 @@ public class Logic : MonoBehaviour {
 
         reader.StartTrial(envinfo.GetOrigin());
 
-        // Wait for player to find target
         float curtime = Time.time;
+
+        if(globalConfig.replay)
+        {
+            //Wait for player height to settle, then disable input.
+            yield return new WaitForSeconds(0.1f);
+            player.SendMessage("DisableInput");
+        }
+
+        // Wait for player to find target
         if(!globalConfig.replay)
         {
             yield return new WaitUntil(() =>

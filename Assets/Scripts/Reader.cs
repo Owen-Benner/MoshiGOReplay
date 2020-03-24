@@ -160,10 +160,13 @@ public class Reader : MonoBehaviour
             {
                 float adjTime = Time.time - startTime + trials[0].starttime;
                 //Skip to last applicable frame.
-                while(frames[1].timestamp < adjTime)
+                if(frames.Count > 1)
                 {
-                    if(frames[0].result == null)
-                        frames.RemoveAt(0);
+                    while(frames[1].timestamp < adjTime)
+                    {
+                        if(frames[0].result == null)
+                            frames.RemoveAt(0);
+                    }
                 }
                 //Check to read next frame.
                 Frame frame = frames[0];
