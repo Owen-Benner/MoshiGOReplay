@@ -14,6 +14,7 @@ public class Logic : MonoBehaviour {
 
     public GameObject Environments = null;
     public GameObject CanvasCoord = null;
+    public GameObject timestamp;
 
     public Config globalConfig = null; // Global settings, like actionKey
 
@@ -120,15 +121,15 @@ public class Logic : MonoBehaviour {
         EnvInfo envinfo = (EnvInfo)curenv.GetComponent<EnvInfo>();
         logger.StartTrial(envinfo.GetActiveTriggerObj().transform.position, player, envinfo.GetOrigin());
 
-        reader.StartTrial(envinfo.GetOrigin());
-
         float curtime = Time.time;
 
         if(globalConfig.replay)
         {
+            reader.StartTrial(envinfo.GetOrigin());
             //Wait for player height to settle, then disable input.
             yield return new WaitForSeconds(0.1f);
             player.SendMessage("DisableInput");
+            timestamp.active = true;
         }
 
         // Wait for player to find target

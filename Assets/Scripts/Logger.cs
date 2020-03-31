@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Xml;
+using Tobii.Research;
 
 // Logs to a file a configurable number of seconds
 // What GO is subject to logging is settable, and
@@ -25,6 +26,8 @@ public class Logger : MonoBehaviour {
 
         //Enables all writing. Turn off for replay.
         public bool write = true;
+
+        IEyeTracker eyeTracker;
 
 	//
 	//Private members
@@ -57,6 +60,8 @@ public class Logger : MonoBehaviour {
 
 	//Time take to find object
 	private float timeStart;
+
+        private static GazeDataEventArgs gaze;
 
 	//
 	//Public methods
@@ -159,20 +164,84 @@ public class Logger : MonoBehaviour {
 		//This is our relevant data:
 		//
 		Transform t = gameObjectToLog.transform;
-		m_writer.WriteAttributeString("distance", Vector3.Distance(t.position, goalDestination).ToString());
-		m_writer.WriteAttributeString("pose", t.rotation.eulerAngles.y.ToString());
-		m_writer.WriteAttributeString("timestamp", Time.time.ToString());
-		m_writer.WriteAttributeString("x", (t.position.x - relativeOrigin.x).ToString());
-		m_writer.WriteAttributeString("y", (t.position.z - relativeOrigin.z).ToString());
+		m_writer.WriteAttributeString("distance", Vector3.Distance
+                    (t.position, goalDestination).ToString());
+		m_writer.WriteAttributeString("pose",
+                    t.rotation.eulerAngles.y.ToString());
+		m_writer.WriteAttributeString("timestamp",
+                    Time.time.ToString());
+		m_writer.WriteAttributeString("x", (t.position.x
+                    - relativeOrigin.x).ToString());
+		m_writer.WriteAttributeString("y", (t.position.z
+                    - relativeOrigin.z).ToString());
+
+                //Gaze data. 
+                try
+                {
+                    GazePoint point = gaze.LeftEye.GazePoint;
+                    if(point.Validity == Validity.Valid)
+                    {
+                        m_writer.WriteAttributeString("lefteyex",
+                            point.PositionOnDisplayArea.X.ToString());
+                        m_writer.WriteAttributeString("lefteyey",
+                            point.PositionOnDisplayArea.Y.ToString());
+                    }
+                    else
+                    {
+                        m_writer.WriteAttributeString("lefteyex", "invalid");
+                        m_writer.WriteAttributeString("lefteyey", "invalid");
+                    }
+
+                    PupilData pupil = gaze.LeftEye.Pupil;
+                    if(pupil.Validity == Validity.Valid)
+                    {
+                        m_writer.WriteAttributeString("leftpupil",
+                            pupil.PupilDiameter.ToString());
+                    }
+                    else
+                    {
+                        m_writer.WriteAttributeString("leftpupil", "invalid");
+                    } 
+
+                    if(extraAttrib != null){
+                        m_writer.WriteAttributeString("result", extraAttrib);
+                    }
+
+                    point = gaze.RightEye.GazePoint;
+                    if(point.Validity == Validity.Valid)
+                    {
+                        m_writer.WriteAttributeString("righteyex",
+                            point.PositionOnDisplayArea.X.ToString());
+                        m_writer.WriteAttributeString("righteyey",
+                            point.PositionOnDisplayArea.Y.ToString());
+                    }
+                    else
+                    {
+                        m_writer.WriteAttributeString("righteyex", "invalid");
+                        m_writer.WriteAttributeString("righteyey", "invalid");
+                    }
+
+                    pupil = gaze.RightEye.Pupil;
+                    if(pupil.Validity == Validity.Valid)
+                    {
+                        m_writer.WriteAttributeString("rightpupil",
+                            pupil.PupilDiameter.ToString());
+                    }
+                    else
+                    {
+                        m_writer.WriteAttributeString("rightpupil", "invalid");
+                    } 
+                }
+                catch{}
 
                 if(extraAttrib != null){
                     m_writer.WriteAttributeString("result", extraAttrib);
                 }
 
-		//Done!
-		m_writer.WriteEndElement();
+                //Done!
+                m_writer.WriteEndElement();
             }
-	}
+        }
 
 	public void InitLogger(string subjectName){
             if(write)
@@ -219,23 +288,54 @@ public class Logger : MonoBehaviour {
         }
     }
 
-	//TODO exceptions/using statements
-	//Close our file and that kind of thing
-	void OnDestroy(){
-            if(write)
-            {
-		if(inTrial)
-			EndTrial();
+    //TODO exceptions/using statements
+    //Close our file and that kind of thing
+    void OnDestroy(){
+        if(write)
+        {
+            if(inTrial)
+                    EndTrial();
 
-		//End high level information
-		m_writer.WriteEndElement();
+            //End high level information
+            m_writer.WriteEndElement();
 
-		//End our document
-		m_writer.WriteEndDocument();
+            //End our document
+            m_writer.WriteEndDocument();
 
-		//Close file
-		m_writer.Close();
-            }
-	}
+            //Close file
+            m_writer.Close();
+        }
+    }
+
+    private void Start()
+    {
+        try
+        {
+            eyeTracker = EyeTrackingOperations.FindAllEyeTrackers()[0];
+            eyeTracker.GazeDataReceived += EyeTracker_GazeDataReceived;
+        }
+        catch
+        {
+            Debug.LogError("Eye tracker not found!");
+        } 
+    }
+
+    private void EyeTracker_GazeDataReceived(object sender, GazeDataEventArgs e)
+    {
+        gaze = e;
+        Debug.Log("Recieved gaze data.");
+    } 
+
+    private void OnApplicationQuit()
+    {
+        try
+        {
+            Debug.Log("Terminating eye tracker operation.");
+            eyeTracker.GazeDataReceived -= EyeTracker_GazeDataReceived;
+            EyeTrackingOperations.Terminate();
+        }
+        catch{}
+    } 
+
 }
 

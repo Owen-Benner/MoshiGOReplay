@@ -8,8 +8,12 @@ public class Reader : MonoBehaviour
 {
     public Logic logic;
     public ReplayMovement reMove;
+    public Timestamp stamp;
 
     public int actionFlag = 0; //1 if action, 2 if timeout
+
+    public Eye lEye;
+    public Eye rEye;
 
     private string outputName;
 
@@ -26,9 +30,18 @@ public class Reader : MonoBehaviour
         public float timestamp;
         public float x;
         public float y;
+
+        public string lefteyex;
+        public string lefteyey;
+        public string leftpupil;
+        public string righteyex;
+        public string righteyey;
+        public string rightpupil;
+
         public string result;
 
         public Frame(string d, string p, string t, string _x, string _y,
+            string lx, string ly, string lp, string rx, string ry, string rp,
             string r = null)
         {
             distance = Single.Parse(d);
@@ -36,6 +49,14 @@ public class Reader : MonoBehaviour
             timestamp = Single.Parse(t);
             x = Single.Parse(_x);
             y = Single.Parse(_y);
+
+            lefteyex = lx;
+            lefteyey = ly;
+            leftpupil = lp;
+            righteyex = rx;
+            righteyey = ry;
+            rightpupil = rp;
+
             result = r;
         }
     };
@@ -104,7 +125,15 @@ public class Reader : MonoBehaviour
                                     xmlReader.GetAttribute("pose"),
                                     xmlReader.GetAttribute("timestamp"),
                                     xmlReader.GetAttribute("x"),
-                                    xmlReader.GetAttribute("y"));
+                                    xmlReader.GetAttribute("y"),
+
+                                    xmlReader.GetAttribute("lefteyex"),
+                                    xmlReader.GetAttribute("lefteyey"),
+                                    xmlReader.GetAttribute("leftpupil"),
+                                    xmlReader.GetAttribute("righteyex"),
+                                    xmlReader.GetAttribute("righteyey"),
+                                    xmlReader.GetAttribute("rightpupil"));
+
                                 frames.Add(newFrame);
                             }
                             else if(xmlReader.Name == "trial")
@@ -132,6 +161,14 @@ public class Reader : MonoBehaviour
                                     xmlReader.GetAttribute("timestamp"),
                                     xmlReader.GetAttribute("x"),
                                     xmlReader.GetAttribute("y"),
+                                
+                                    xmlReader.GetAttribute("lefteyex"),
+                                    xmlReader.GetAttribute("lefteyey"),
+                                    xmlReader.GetAttribute("leftpupil"),
+                                    xmlReader.GetAttribute("righteyex"),
+                                    xmlReader.GetAttribute("righteyey"),
+                                    xmlReader.GetAttribute("rightpupil"),
+
                                     xmlReader.GetAttribute("result"));
                                 frames.Add(newAction);
                             }
@@ -140,26 +177,28 @@ public class Reader : MonoBehaviour
                 }
             }
             /*
-            foreach(Frame frame in frames)
+            foreach(frame frame in frames)
                 Debug.Log(frame.timestamp);
             */
         }
     }
 
-    // Update is called once per frame
+    // update is called once per frame
     void Update()
     {
+        Debug.Log("Update");
         if(replaying)
         {
+            Debug.Log("Replaying.");
             if(frames.Count == 0)
             {
                 replaying = false;
-                Debug.Log("End run");
+                Debug.Log("end run");
             }
             else
             {
                 float adjTime = Time.time - startTime + trials[0].starttime;
-                //Skip to last applicable frame.
+                //skip to last applicable frame.
                 if(frames.Count > 1)
                 {
                     while(frames[1].timestamp < adjTime)
@@ -168,11 +207,24 @@ public class Reader : MonoBehaviour
                             frames.RemoveAt(0);
                     }
                 }
-                //Check to read next frame.
+                //check to read next frame.
                 Frame frame = frames[0];
                 if(adjTime > frame.timestamp)
                 {
+                    Debug.Log("Going to frame.");
                     reMove.MoveToFrame(frame.pose, frame.x, frame.y, relOrigin);
+                    if(!Single.TryParse(frame.lefteyex, out lEye.xPos))
+                        lEye.xPos = -100f;
+                    if(!Single.TryParse(frame.lefteyey, out lEye.yPos))
+                        lEye.yPos = -100f;
+                    if(!Single.TryParse(frame.leftpupil, out lEye.diameter))
+                        lEye.diameter = 0f;
+                    if(!Single.TryParse(frame.righteyex, out rEye.xPos))
+                        rEye.xPos = -100f;
+                    if(!Single.TryParse(frame.righteyey, out rEye.yPos))
+                        rEye.yPos = -100f;
+                    if(!Single.TryParse(frame.rightpupil, out rEye.diameter))
+                        rEye.diameter = 0f;
                     if(frames[0].result != null)
                     {
                         if(frames[0].result == "action")
@@ -192,7 +244,10 @@ public class Reader : MonoBehaviour
                     replaying = false;
                     trials.RemoveAt(0);
                     dones.RemoveAt(0);
-                    Debug.Log("End trial");
+                    Debug.Log("end trial");
+                    stamp.gameObject.active = false;
+                    lEye.gameObject.active = false;
+                    rEye.gameObject.active = false;
                 }
             }
         }
@@ -200,11 +255,14 @@ public class Reader : MonoBehaviour
 
     public void StartTrial(Vector3 _relOrigin)
     {
-        Debug.Log("Starting trial");
+        Debug.Log("starting trial");
         replaying = true;
         startTime = Time.time;
         reMove =
             GameObject.FindWithTag("Player").GetComponent<ReplayMovement>();
         relOrigin = _relOrigin;
+        stamp.AdjStartTime(frames[0].timestamp);
+        lEye.gameObject.active = true;
+        rEye.gameObject.active = true;
     }
 }
