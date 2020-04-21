@@ -1,12 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 using System;
 using System.IO;
-using System.Text;
-using UnityStandardAssets.Characters.FirstPerson;
 
 public class Logic : MonoBehaviour {
 
@@ -44,24 +41,32 @@ public class Logic : MonoBehaviour {
     // objShowIndex: index of object to show
     // showTime: time we show the object
     // greyScreenTime: time we show the plus
-    private IEnumerator ShowGrayScreen(int objShowIndex, float showTime, float greyScreenTime){
+    private IEnumerator ShowGrayScreen(int objShowIndex, float showTime,
+		float greyScreenTime, Logger logger)
+	{
         if(showTime <= 0.0f && greyScreenTime <= 0.0f){
             // End immediately
             yield break;
         }
+
+		logger.StartGray(objShowIndex, showTime, greyScreenTime);
 
         CanvasCoord.SendMessage("ShowGray");
         print("ShowGrayScreen(): Enabled grayscreen");
 
         if(showTime > 0.0f){
             CanvasCoord.SendMessage("ShowImage", objShowIndex);
-            print(String.Format("ShowGrayScreen(): Enabled Image {0}", objShowIndex));
+            print(String.Format("ShowGrayScreen(): Enabled Image {0}",
+				objShowIndex));
 
             yield return new WaitForSeconds(showTime);
 
             CanvasCoord.SendMessage("HideImage");
-            print(String.Format("ShowGrayScreen(): Disabled Image {0}", objShowIndex));
+            print(String.Format("ShowGrayScreen(): Disabled Image {0}",
+				objShowIndex));
         }
+
+		logger.WriteActionGray("hideimage");
 
         if(greyScreenTime > 0.0f){
             CanvasCoord.SendMessage("ShowPlus");
@@ -73,6 +78,8 @@ public class Logic : MonoBehaviour {
 
         CanvasCoord.SendMessage("HideGray");
         print("ShowGrayScreen(): Disabled grayscreen");
+
+		logger.EndGray();
     }
 
     //
@@ -83,7 +90,8 @@ public class Logic : MonoBehaviour {
         print("RunNormalScene(): Starting");
 
         // Show GrayScreen
-        yield return StartCoroutine(ShowGrayScreen(s.objShowIndex, s.showTime, s.greyScreenTime));
+        yield return StartCoroutine(ShowGrayScreen(s.objShowIndex, s.showTime,
+			s.greyScreenTime, logger));
 
         // Env we'll be sending message to
         GameObject curenv = GetEnvGO(Environments, s.envIndex);
@@ -129,7 +137,7 @@ public class Logic : MonoBehaviour {
             //Wait for player height to settle, then disable input.
             yield return new WaitForSeconds(0.1f);
             player.SendMessage("DisableInput");
-            timestamp.active = true;
+            timestamp.SetActive(true);
         }
 
         // Wait for player to find target
@@ -226,7 +234,8 @@ public class Logic : MonoBehaviour {
 
         ResetCallbacks();
 
-        yield return StartCoroutine(ShowGrayScreen(-1, 0.0f, s.greyScreenTimeTwo));
+        yield return StartCoroutine(ShowGrayScreen(-1, 0.0f,
+			s.greyScreenTimeTwo, logger));
 
         print("Scene(): Done");
     }
@@ -274,7 +283,8 @@ public class Logic : MonoBehaviour {
     public IEnumerator RunAllScenes(IEnumerable<Scene> scenes, Logger logger,
         Reader reader){
         // Show the intro screen first
-        yield return StartCoroutine(IntroGreyScreen(IntroGreyScreenTime));
+        yield return StartCoroutine(IntroGreyScreen(IntroGreyScreenTime,
+			logger));
 
         logger.StartPhase(globalConfig.phaseName);
 
@@ -295,7 +305,7 @@ public class Logic : MonoBehaviour {
         Application.Quit();
     }
 
-    IEnumerator IntroGreyScreen(float plusTime){
+    IEnumerator IntroGreyScreen(float plusTime, Logger logger){
         CanvasCoord.SendMessage("ShowGray");
         print("IntroGreyScreen(): Enabled grayscreen");
 
@@ -305,11 +315,15 @@ public class Logic : MonoBehaviour {
         yield return new WaitUntil(() => Input.GetKeyDown("5"));
         print("IntroGreyScreen(): ...Got it!");
 
+		logger.StartGrayIntro();
+
         yield return new WaitForSeconds(plusTime);
         CanvasCoord.SendMessage("HidePlus");
 
         CanvasCoord.SendMessage("HideGray");
         print("IntroGreyScreen(): Disabled grayscreen");
+
+		logger.EndGray();
     }
 
     void Awake(){

@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<run subject="12345" version="1.0">
+  <normal>
+    <trial goalx="-3.326294" goaly="23.28421" pose="-6.659434E-05" startx="0.06002808" starty="-26.90997" starttime="23.23427">
+      <frame distance="50.34405" pose="-6.659434E-05" timestamp="23.38473" x="0.06002808" y="-26.90997" lefteyex="0.51332" lefteyey="0.35667" leftpupil="3.5221" righteyex="0.52876" righteyey="0.35582" rightpupil="3.6285" />
+      <frame distance="50.34405" pose="-6.659434E-05" timestamp="23.46337" x="0.06002808" y="-26.90997" lefteyex="0.53895" lefteyey="0.38383" leftpupil="3.5383" righteyex="0.52384" righteyey="0.35363" rightpupil="3.6463" />
+...
+      <frame distance="3.728008" pose="-7.064106E-05" timestamp="29.77891" x="-3.143311" y="20.08044" lefteyex="0.45284" lefteyey="0.8432" leftpupil="1.7838" righteyex="0.45573" righteyey="0.8374" rightpupil="1.78353" />
+      <frame distance="3.324583" pose="-7.064106E-05" timestamp="29.82853" x="-3.143311" y="20.56044" lefteyex="0.45483" lefteyey="0.8487" leftpupil="1.7763" righteyex="0.46735" righteyey="0.8369" rightpupil="1.77935" />
+      <action distance="3.324583" pose="-7.064106E-05" timestamp="29.82853" x="-3.143311" y="20.56044" lefteyex="0.45483" lefteyey="0.8487" leftpupil="1.7763" righteyex="0.46735" righteyey="0.8369" rightpupil="1.77935" result="action" />
+      <done time_elapsed="6.594263" />
+    </trial>
+  </normal>
+</run>

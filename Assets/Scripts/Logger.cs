@@ -6,7 +6,9 @@ using Tobii.Research;
 // Logs to a file a configurable number of seconds
 // What GO is subject to logging is settable, and
 // is probably done by FPSChanger
-public class Logger : MonoBehaviour {
+public class Logger : MonoBehaviour
+{
+
 	//
 	//Highest level tag settings
 	//
@@ -24,10 +26,10 @@ public class Logger : MonoBehaviour {
 	//Log timer interval
 	public float LogTimeInterval = 1f / 24f;
 
-        //Enables all writing. Turn off for replay.
-        public bool write = true;
+	//Enables all writing. Turn off for replay.
+	public bool write = true;
 
-        IEyeTracker eyeTracker;
+	IEyeTracker eyeTracker;
 
 	//
 	//Private members
@@ -52,8 +54,8 @@ public class Logger : MonoBehaviour {
 	//XmlWriter
 	private XmlWriter m_writer;
 
-        // Keep track of logging coroutine
-        private IEnumerator logCoro;
+	// Keep track of logging coroutine
+	private IEnumerator logCoro;
 
 	//Are we currently inside a trial element?
 	private bool inTrial = false;
@@ -61,93 +63,223 @@ public class Logger : MonoBehaviour {
 	//Time take to find object
 	private float timeStart;
 
-        private static GazeDataEventArgs gaze;
+	private static GazeDataEventArgs gaze;
 
 	//
 	//Public methods
 	//
 
+	public void StartGrayIntro()
+	{
+		if(write)
+		{
+			m_writer.WriteStartElement("intrograyscreen");
+			m_writer.WriteAttributeString("starttime", (Time.time).ToString());
+			logCoro = WaitAndWriteFrameGray(LogTimeInterval);
+			StartCoroutine(logCoro);
+		}
+	}
+
+	public void StartGray(int objShowIndex, float showTime, float
+		grayScreenTime)
+	{
+		if(write)
+		{
+			m_writer.WriteStartElement("grayscreen");
+			m_writer.WriteAttributeString("objectshowindex",
+				objShowIndex.ToString());
+			m_writer.WriteAttributeString("objectshowtime",
+				showTime.ToString());
+			m_writer.WriteAttributeString("grayscreenshowtime",
+				grayScreenTime.ToString());
+			m_writer.WriteAttributeString("starttime", (Time.time).ToString());
+			logCoro = WaitAndWriteFrameGray(LogTimeInterval);
+			StartCoroutine(logCoro);
+		}
+	}
+
+	public void EndGray()
+	{
+		if(write)
+		{
+			m_writer.WriteStartElement("done");
+			m_writer.WriteEndElement();
+			m_writer.WriteEndElement();
+			StopCoroutine(logCoro);
+			logCoro = null;
+		}
+	}
+
+	public void WriteFrameGray(string name, string extraAttrib=null)
+	{
+		if(write)
+		{
+			m_writer.WriteStartElement(name);
+			m_writer.WriteAttributeString("timestamp", Time.time.ToString());
+
+			//Gaze data. 
+			try
+			{
+				GazePoint point = gaze.LeftEye.GazePoint;
+				if(point.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("lefteyex",
+						point.PositionOnDisplayArea.X.ToString());
+					m_writer.WriteAttributeString("lefteyey",
+						point.PositionOnDisplayArea.Y.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("lefteyex", "invalid");
+					m_writer.WriteAttributeString("lefteyey", "invalid");
+				}
+
+				PupilData pupil = gaze.LeftEye.Pupil;
+				if(pupil.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("leftpupil",
+						pupil.PupilDiameter.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("leftpupil", "invalid");
+				} 
+
+				if(extraAttrib != null){
+					m_writer.WriteAttributeString("result", extraAttrib);
+				}
+
+				point = gaze.RightEye.GazePoint;
+				if(point.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("righteyex",
+						point.PositionOnDisplayArea.X.ToString());
+					m_writer.WriteAttributeString("righteyey",
+						point.PositionOnDisplayArea.Y.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("righteyex", "invalid");
+					m_writer.WriteAttributeString("righteyey", "invalid");
+				}
+
+				pupil = gaze.RightEye.Pupil;
+				if(pupil.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("rightpupil",
+						pupil.PupilDiameter.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("rightpupil", "invalid");
+				} 
+			}
+			catch{}
+
+			if(extraAttrib != null){
+				m_writer.WriteAttributeString("result", extraAttrib);
+			}
+
+			//Done!
+			m_writer.WriteEndElement();
+		}
+	}
+
+	public void WriteActionGray(string actionval)
+	{
+		WriteFrameGray("action", actionval);
+	}
+
 	//Called to start the recording of a trial
-	public void StartTrial(Vector3 destination, GameObject trackme, Vector3 relOrigin){
-            if(write)
-            {
-		//Setup local state
-		//
-		gameObjectToLog = trackme;
-		goalDestination = destination;
-		relativeOrigin = relOrigin; // XXX DEBUG
+	public void StartTrial(Vector3 destination, GameObject trackme,
+		Vector3 relOrigin)
+	{
+		if(write)
+		{
+			//Setup local state
+			//
+			gameObjectToLog = trackme;
+			goalDestination = destination;
+			relativeOrigin = relOrigin; // XXX DEBUG
 
-		//Write a trial element
-		//
-		m_writer.WriteStartElement("trial");
+			//Write a trial element
+			//
+			m_writer.WriteStartElement("trial");
 
-		//Refer to an old log file for an idea
-		//of what each printed thing means
-		//
-		m_writer.WriteAttributeString("goalx",
+			//Refer to an old log file for an idea
+			//of what each printed thing means
+			//
+			m_writer.WriteAttributeString("goalx",
 				(goalDestination.x - relativeOrigin.x).ToString());
 
-		m_writer.WriteAttributeString("goaly",
+			m_writer.WriteAttributeString("goaly",
 				(goalDestination.z - relativeOrigin.z).ToString());
 
-		m_writer.WriteAttributeString("pose",
+			m_writer.WriteAttributeString("pose",
 				gameObjectToLog.transform.rotation.eulerAngles.y.ToString());
 
-		m_writer.WriteAttributeString("startx",
-				(gameObjectToLog.transform.position.x - relativeOrigin.x).ToString());
+			m_writer.WriteAttributeString("startx",
+				(gameObjectToLog.transform.position.x -
+				relativeOrigin.x).ToString());
 
-		m_writer.WriteAttributeString("starty",
-				(gameObjectToLog.transform.position.z - relativeOrigin.z).ToString());
+			m_writer.WriteAttributeString("starty",
+				(gameObjectToLog.transform.position.z -
+				relativeOrigin.z).ToString());
 
-		m_writer.WriteAttributeString("starttime",
+			m_writer.WriteAttributeString("starttime",
 				(Time.time).ToString());
 
-		//Setup timer; other state
-		//
-		inTrial = true;
-                logCoro = WaitAndWriteFrame(LogTimeInterval);
-                StartCoroutine(logCoro);
-		timeStart = Time.time;
-            }
+			//Setup timer; other state
+			//
+			inTrial = true;
+			logCoro = WaitAndWriteFrame(LogTimeInterval);
+			StartCoroutine(logCoro);
+			timeStart = Time.time;
+		}
 	}
 
 	//Ends a started trial
-	public void EndTrial(int index = -1){
-            if(write)
-            {
-		//Write the no bs element
-		//
-		m_writer.WriteStartElement("done");
-		m_writer.WriteAttributeString("time_elapsed", (Time.time - timeStart).ToString());
-		if(index != -1)
-			m_writer.WriteAttributeString("index", index.ToString());
-		m_writer.WriteEndElement();//End no bs element
+	public void EndTrial(int index = -1)
+	{
+		if(write)
+		{
+			//Write the no bs element
+			//
+			m_writer.WriteStartElement("done");
+			m_writer.WriteAttributeString("time_elapsed", (Time.time -
+				timeStart).ToString());
+			if(index != -1)
+				m_writer.WriteAttributeString("index", index.ToString());
+			m_writer.WriteEndElement();//End no bs element
 
-		m_writer.WriteEndElement();//End trial element
+			m_writer.WriteEndElement();//End trial element
 
-                // We're out of the trial!
-		inTrial = false;
-                StopCoroutine(logCoro);
-                logCoro = null;
-            }
+			// We're out of the trial!
+			inTrial = false;
+			StopCoroutine(logCoro);
+			logCoro = null;
+		}
 	}
 
-    // Log when player presses action
-    public void WriteAction(string actionval){
-        WriteFrame("action", actionval);
-    }
+	// Log when player presses action
+	public void WriteAction(string actionval)
+	{
+		WriteFrame("action", actionval);
+	}
 
-    // Phase controls
-    // Phases wrap all trials
+	// Phase controls
+	// Phases wrap all trials
 
-	public void StartPhase(string phase){
-	    if(write)
-                m_writer.WriteStartElement(phase);
+	public void StartPhase(string phase)
+	{
+		if(write)
+			m_writer.WriteStartElement(phase);
 	}
 	
-	public void EndPhase(){
-            if(write)
-		m_writer.WriteEndElement();
+	public void EndPhase()
+	{
+		if(write)
+			m_writer.WriteEndElement();
 	}
 
 	//
@@ -155,187 +287,206 @@ public class Logger : MonoBehaviour {
 	//
 
 	//Log the state of the current frame
-	private void WriteFrame(string name, string extraAttrib=null){
-            if(write)
-            {
-		//Writing this frame...
-		m_writer.WriteStartElement(name);
+	private void WriteFrame(string name, string extraAttrib=null)
+	{
+		if(write)
+		{
+			//Writing this frame...
+			m_writer.WriteStartElement(name);
 
-		//This is our relevant data:
-		//
-		Transform t = gameObjectToLog.transform;
-		m_writer.WriteAttributeString("distance", Vector3.Distance
-                    (t.position, goalDestination).ToString());
-		m_writer.WriteAttributeString("pose",
-                    t.rotation.eulerAngles.y.ToString());
-		m_writer.WriteAttributeString("timestamp",
-                    Time.time.ToString());
-		m_writer.WriteAttributeString("x", (t.position.x
-                    - relativeOrigin.x).ToString());
-		m_writer.WriteAttributeString("y", (t.position.z
-                    - relativeOrigin.z).ToString());
+			//This is our relevant data:
+			//
+			Transform t = gameObjectToLog.transform;
+			m_writer.WriteAttributeString("distance", Vector3.Distance
+				(t.position, goalDestination).ToString());
+			m_writer.WriteAttributeString("pose",
+				t.rotation.eulerAngles.y.ToString());
+			m_writer.WriteAttributeString("timestamp",
+				Time.time.ToString());
+			m_writer.WriteAttributeString("x", (t.position.x
+				- relativeOrigin.x).ToString());
+			m_writer.WriteAttributeString("y", (t.position.z
+				- relativeOrigin.z).ToString());
 
-                //Gaze data. 
-                try
-                {
-                    GazePoint point = gaze.LeftEye.GazePoint;
-                    if(point.Validity == Validity.Valid)
-                    {
-                        m_writer.WriteAttributeString("lefteyex",
-                            point.PositionOnDisplayArea.X.ToString());
-                        m_writer.WriteAttributeString("lefteyey",
-                            point.PositionOnDisplayArea.Y.ToString());
-                    }
-                    else
-                    {
-                        m_writer.WriteAttributeString("lefteyex", "invalid");
-                        m_writer.WriteAttributeString("lefteyey", "invalid");
-                    }
+			//Gaze data. 
+			try
+			{
+				GazePoint point = gaze.LeftEye.GazePoint;
+				if(point.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("lefteyex",
+						point.PositionOnDisplayArea.X.ToString());
+					m_writer.WriteAttributeString("lefteyey",
+						point.PositionOnDisplayArea.Y.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("lefteyex", "invalid");
+					m_writer.WriteAttributeString("lefteyey", "invalid");
+				}
 
-                    PupilData pupil = gaze.LeftEye.Pupil;
-                    if(pupil.Validity == Validity.Valid)
-                    {
-                        m_writer.WriteAttributeString("leftpupil",
-                            pupil.PupilDiameter.ToString());
-                    }
-                    else
-                    {
-                        m_writer.WriteAttributeString("leftpupil", "invalid");
-                    } 
+				PupilData pupil = gaze.LeftEye.Pupil;
+				if(pupil.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("leftpupil",
+						pupil.PupilDiameter.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("leftpupil", "invalid");
+				} 
 
-                    if(extraAttrib != null){
-                        m_writer.WriteAttributeString("result", extraAttrib);
-                    }
+				if(extraAttrib != null){
+					m_writer.WriteAttributeString("result", extraAttrib);
+				}
 
-                    point = gaze.RightEye.GazePoint;
-                    if(point.Validity == Validity.Valid)
-                    {
-                        m_writer.WriteAttributeString("righteyex",
-                            point.PositionOnDisplayArea.X.ToString());
-                        m_writer.WriteAttributeString("righteyey",
-                            point.PositionOnDisplayArea.Y.ToString());
-                    }
-                    else
-                    {
-                        m_writer.WriteAttributeString("righteyex", "invalid");
-                        m_writer.WriteAttributeString("righteyey", "invalid");
-                    }
+				point = gaze.RightEye.GazePoint;
+				if(point.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("righteyex",
+						point.PositionOnDisplayArea.X.ToString());
+					m_writer.WriteAttributeString("righteyey",
+						point.PositionOnDisplayArea.Y.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("righteyex", "invalid");
+					m_writer.WriteAttributeString("righteyey", "invalid");
+				}
 
-                    pupil = gaze.RightEye.Pupil;
-                    if(pupil.Validity == Validity.Valid)
-                    {
-                        m_writer.WriteAttributeString("rightpupil",
-                            pupil.PupilDiameter.ToString());
-                    }
-                    else
-                    {
-                        m_writer.WriteAttributeString("rightpupil", "invalid");
-                    } 
-                }
-                catch{}
+				pupil = gaze.RightEye.Pupil;
+				if(pupil.Validity == Validity.Valid)
+				{
+					m_writer.WriteAttributeString("rightpupil",
+						pupil.PupilDiameter.ToString());
+				}
+				else
+				{
+					m_writer.WriteAttributeString("rightpupil", "invalid");
+				} 
+			}
+			catch{}
 
-                if(extraAttrib != null){
-                    m_writer.WriteAttributeString("result", extraAttrib);
-                }
+			if(extraAttrib != null){
+				m_writer.WriteAttributeString("result", extraAttrib);
+			}
 
-                //Done!
-                m_writer.WriteEndElement();
-            }
-        }
-
-	public void InitLogger(string subjectName){
-            if(write)
-            {
-		//Xml
-		//
-
-		//Setup XmlWriter with indenting enabled (uses hot C# syntax for Object Initializer)
-		//TODO Try/catch/finally, or just crash
-		m_writer = XmlWriter.Create(XmlLogOutput, new XmlWriterSettings(){Indent = true});
-
-		//Start our document
-		m_writer.WriteStartDocument();
-
-		//Add some high level information
-		m_writer.WriteStartElement("run");
-		m_writer.WriteAttributeString("subject", subjectName);
-		m_writer.WriteAttributeString("version", VersionString);
-            }
+			//Done!
+			m_writer.WriteEndElement();
+		}
 	}
 
-	public void LogDebug(string s){
-            if(write)
-            {
-		m_writer.WriteStartElement("run");
-		m_writer.WriteEndElement();
-            }
+	public void InitLogger(string subjectName)
+	{
+		if(write)
+		{
+			//Xml
+			//
+
+			//Setup XmlWriter with indenting enabled
+			//(uses hot C# syntax for Object Initializer)
+			//TODO Try/catch/finally, or just crash
+			m_writer = XmlWriter.Create(XmlLogOutput, new XmlWriterSettings()
+				{ Indent = true } );
+
+			//Start our document
+			m_writer.WriteStartDocument();
+
+			//Add some high level information
+			m_writer.WriteStartElement("run");
+			m_writer.WriteAttributeString("subject", subjectName);
+			m_writer.WriteAttributeString("version", VersionString);
+		}
+	}
+
+	public void LogDebug(string s)
+	{
+		if(write)
+		{
+			m_writer.WriteStartElement("run");
+			m_writer.WriteEndElement();
+		}
 	}
 
 	//
 	//Unity callbacks
 	//
 
-    public IEnumerator WaitAndWriteFrame(float waitTime)
-    {
-        float nextTime = Time.time + waitTime;
-        while(true)
-        {
-            while(Time.time < nextTime)
-                yield return null;
-            while(Time.time >= nextTime)
-                nextTime += waitTime;
-            WriteFrame("frame");
-        }
-    }
+	public IEnumerator WaitAndWriteFrame(float waitTime)
+	{
+		float nextTime = Time.time + waitTime;
+		while(true)
+		{
+			while(Time.time < nextTime)
+				yield return null;
+			while(Time.time >= nextTime)
+				nextTime += waitTime;
+			WriteFrame("frame");
+		}
+	}
 
-    //TODO exceptions/using statements
-    //Close our file and that kind of thing
-    void OnDestroy(){
-        if(write)
-        {
-            if(inTrial)
-                    EndTrial();
+	public IEnumerator WaitAndWriteFrameGray(float waitTime)
+	{
+		float nextTime = Time.time + waitTime;
+		while(true)
+		{
+			while(Time.time < nextTime)
+				yield return null;
+			while(Time.time >= nextTime)
+				nextTime += waitTime;
+			WriteFrameGray("frame");
+		}
+	}
 
-            //End high level information
-            m_writer.WriteEndElement();
+	//TODO exceptions/using statements
+	//Close our file and that kind of thing
+	void OnDestroy()
+	{
+		if(write)
+		{
+			if(inTrial)
+				EndTrial();
 
-            //End our document
-            m_writer.WriteEndDocument();
+			//End high level information
+			m_writer.WriteEndElement();
 
-            //Close file
-            m_writer.Close();
-        }
-    }
+			//End our document
+			m_writer.WriteEndDocument();
 
-    private void Start()
-    {
-        try
-        {
-            eyeTracker = EyeTrackingOperations.FindAllEyeTrackers()[0];
-            eyeTracker.GazeDataReceived += EyeTracker_GazeDataReceived;
-        }
-        catch
-        {
-            Debug.LogError("Eye tracker not found!");
-        } 
-    }
+			//Close file
+			m_writer.Close();
+		}
+	}
 
-    private void EyeTracker_GazeDataReceived(object sender, GazeDataEventArgs e)
-    {
-        gaze = e;
-        Debug.Log("Recieved gaze data.");
-    } 
+	private void Start()
+	{
+		try
+		{
+			eyeTracker = EyeTrackingOperations.FindAllEyeTrackers()[0];
+			eyeTracker.GazeDataReceived += EyeTracker_GazeDataReceived;
+		}
+		catch
+		{
+			Debug.LogError("Eye tracker not found!");
+		} 
+	}
 
-    private void OnApplicationQuit()
-    {
-        try
-        {
-            Debug.Log("Terminating eye tracker operation.");
-            eyeTracker.GazeDataReceived -= EyeTracker_GazeDataReceived;
-            EyeTrackingOperations.Terminate();
-        }
-        catch{}
-    } 
+	private void EyeTracker_GazeDataReceived(object sender, GazeDataEventArgs e)
+	{
+		gaze = e;
+		Debug.Log("Recieved gaze data.");
+	} 
+
+	private void OnApplicationQuit()
+	{
+		try
+		{
+			Debug.Log("Terminating eye tracker operation.");
+			eyeTracker.GazeDataReceived -= EyeTracker_GazeDataReceived;
+			EyeTrackingOperations.Terminate();
+		}
+		catch{}
+	} 
 
 }
 
