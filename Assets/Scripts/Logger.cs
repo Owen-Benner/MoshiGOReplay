@@ -65,6 +65,8 @@ public class Logger : MonoBehaviour
 
 	private static GazeDataEventArgs gaze;
 
+	private float startTime;
+
 	//
 	//Public methods
 	//
@@ -73,8 +75,10 @@ public class Logger : MonoBehaviour
 	{
 		if(write)
 		{
+			startTime = Time.time;
 			m_writer.WriteStartElement("intrograyscreen");
-			m_writer.WriteAttributeString("starttime", (Time.time).ToString());
+			m_writer.WriteAttributeString("starttime", (Time.time -
+				startTime).ToString());
 			logCoro = WaitAndWriteFrameGray(LogTimeInterval);
 			StartCoroutine(logCoro);
 		}
@@ -92,7 +96,8 @@ public class Logger : MonoBehaviour
 				showTime.ToString());
 			m_writer.WriteAttributeString("grayscreenshowtime",
 				grayScreenTime.ToString());
-			m_writer.WriteAttributeString("starttime", (Time.time).ToString());
+			m_writer.WriteAttributeString("starttime", (Time.time -
+				startTime).ToString());
 			logCoro = WaitAndWriteFrameGray(LogTimeInterval);
 			StartCoroutine(logCoro);
 		}
@@ -102,7 +107,7 @@ public class Logger : MonoBehaviour
 	{
 		if(write)
 		{
-			m_writer.WriteStartElement("done");
+			m_writer.WriteStartElement("donegray");
 			m_writer.WriteEndElement();
 			m_writer.WriteEndElement();
 			StopCoroutine(logCoro);
@@ -115,7 +120,8 @@ public class Logger : MonoBehaviour
 		if(write)
 		{
 			m_writer.WriteStartElement(name);
-			m_writer.WriteAttributeString("timestamp", Time.time.ToString());
+			m_writer.WriteAttributeString("timestamp", (Time.time -
+				startTime).ToString());
 
 			//Gaze data. 
 			try
@@ -187,7 +193,7 @@ public class Logger : MonoBehaviour
 
 	public void WriteActionGray(string actionval)
 	{
-		WriteFrameGray("action", actionval);
+		WriteFrameGray("actiongray", actionval);
 	}
 
 	//Called to start the recording of a trial
@@ -227,7 +233,7 @@ public class Logger : MonoBehaviour
 				relativeOrigin.z).ToString());
 
 			m_writer.WriteAttributeString("starttime",
-				(Time.time).ToString());
+				(Time.time - startTime).ToString());
 
 			//Setup timer; other state
 			//
@@ -302,7 +308,7 @@ public class Logger : MonoBehaviour
 			m_writer.WriteAttributeString("pose",
 				t.rotation.eulerAngles.y.ToString());
 			m_writer.WriteAttributeString("timestamp",
-				Time.time.ToString());
+				(Time.time - startTime).ToString());
 			m_writer.WriteAttributeString("x", (t.position.x
 				- relativeOrigin.x).ToString());
 			m_writer.WriteAttributeString("y", (t.position.z
@@ -434,7 +440,7 @@ public class Logger : MonoBehaviour
 				yield return null;
 			while(Time.time >= nextTime)
 				nextTime += waitTime;
-			WriteFrameGray("frame");
+			WriteFrameGray("framegray");
 		}
 	}
 
